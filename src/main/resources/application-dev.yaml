@@ -7,5 +7,4 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-#  profiles:
-#    active: dev
+    show-sql: true
