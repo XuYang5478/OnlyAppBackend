@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://127.0.0.1:3306/develop?characterEncoding=utf-8&useSSL=false&useTimezone=true&serverTimezone=GMT%2B8
+    url: jdbc:mysql://127.0.0.1:3306/develop?characterEncoding=utf-8&useSSL=false&useTimezone=true&serverTimezone=GMT%2B8
     username: root
-    password: xuyang2078
+    password: 123456xy
   jpa:
     hibernate:
       ddl-auto: update
