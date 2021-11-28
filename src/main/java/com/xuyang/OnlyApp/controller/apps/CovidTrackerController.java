@@ -40,7 +40,7 @@ public class CovidTrackerController {
         return covidDataService.getGlobalDetailData();
     }
 
-    @GetMapping("/China_total")
+    @GetMapping("/China_detail")
     public Map<String, CovidData> getChinaDetailData(){
         return covidDataService.getChinaDetailData();
     }

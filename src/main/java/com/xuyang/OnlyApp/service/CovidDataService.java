@@ -2,6 +2,9 @@ package com.xuyang.OnlyApp.service;
 
 import com.xuyang.OnlyApp.entity.CovidData;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,6 +26,8 @@ public class CovidDataService {
     private static final String DEATH_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv";
     private static final String RECOVERED_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv";
 
+    private final OkHttpClient client = new OkHttpClient();
+
     private final HashMap<String, CovidData> global_data = new HashMap<>();
     private final HashMap<String, CovidData> China_data = new HashMap<>();
     private final HashMap<String, Long> China_total_data = new HashMap<>();
@@ -30,10 +35,21 @@ public class CovidDataService {
 
     private Date updateDate = new Date();
 
-    private void fetchData(String url, String item) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpResponse<String> response = client.send(HttpRequest.newBuilder(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
-        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new StringReader(response.body()));
+    private void fetchData(String url, String item) throws IOException {
+        Request request = new Request.Builder().url(url).build();
+        String result = "";
+        try {
+            Response response = client.newCall(request).execute();
+            result = response.body().string();
+        } catch (Exception e) {
+            log.error(e.toString());
+        }
+        if ("".equals(result)) {
+            log.warn("未获取到"+item+"数据");
+            return;
+        }
+
+        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new StringReader(result));
         for (CSVRecord record : records) {
             String provinceOrState = record.get(0);
             String countryOrRegion = record.get(1);
@@ -69,6 +85,10 @@ public class CovidDataService {
                 China_data.put(key, data);
         }
         log.info("获取到" + item + "数据");
+//        HttpClient client = HttpClient.newHttpClient();
+//        HttpResponse<String> response = client.send(HttpRequest.newBuilder(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
+//        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(new StringReader(response.body()));
+
     }
 
     @PostConstruct

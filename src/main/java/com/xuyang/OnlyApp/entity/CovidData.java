@@ -17,8 +17,8 @@ public class CovidData {
         this.CountryOrRegion = "";
         this.Latitude = 0.0;
         this.Longitude = 0.0;
-        this.confirmed_numbers = new Long[1];
-        this.death_numbers = new Long[1];
-        this.recovered_numbers = new Long[1];
+        this.confirmed_numbers = new Long[]{(long) 0, (long) 0};
+        this.death_numbers = new Long[]{(long) 0, (long) 0};
+        this.recovered_numbers = new Long[]{(long) 0, (long) 0};
     }
 }
