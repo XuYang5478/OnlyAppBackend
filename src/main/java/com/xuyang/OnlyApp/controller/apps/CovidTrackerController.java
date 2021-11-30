@@ -36,12 +36,12 @@ public class CovidTrackerController {
     }
 
     @GetMapping("/global_detail")
-    public Map<String, CovidData> getGlobalDetailData(){
+    public CovidData[] getGlobalDetailData(){
         return covidDataService.getGlobalDetailData();
     }
 
     @GetMapping("/China_detail")
-    public Map<String, CovidData> getChinaDetailData(){
+    public CovidData[] getChinaDetailData(){
         return covidDataService.getChinaDetailData();
     }
 }

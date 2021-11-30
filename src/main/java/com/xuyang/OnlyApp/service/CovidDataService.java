@@ -22,9 +22,17 @@ import java.util.*;
 @Service
 @Slf4j
 public class CovidDataService {
-    private static final String CONFIRMED_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
-    private static final String DEATH_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv";
-    private static final String RECOVERED_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv";
+//    private static final String CONFIRMED_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
+    private static final String CONFIRMED_DATA_URL = "https://cdn.jsdelivr.net/gh/CSSEGISandData/COVID-19@master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv";
+//    private static final String DEATH_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv";
+    private static final String DEATH_DATA_URL = "https://cdn.jsdelivr.net/gh/CSSEGISandData/COVID-19@master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv";
+//    private static final String RECOVERED_DATA_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv";
+    private static final String RECOVERED_DATA_URL = "https://cdn.jsdelivr.net/gh/CSSEGISandData/COVID-19@master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv";
+
+
+    private static final String CONFIRMED="CONFIRMED";
+    private static final String DEATH="DEATH";
+    private static final String RECOVERED="RECOVERED";
 
     private final OkHttpClient client = new OkHttpClient();
 
@@ -66,15 +74,19 @@ public class CovidDataService {
             data.setCountryOrRegion(countryOrRegion);
             data.setLatitude(Double.parseDouble("".equals(record.get(2)) ? "0" : record.get(2)));
             data.setLongitude(Double.parseDouble("".equals(record.get(3)) ? "0" : record.get(3)));
+            int current_date= record.size()-1;
             switch (item) {
-                case "CONFIRMED":
+                case CONFIRMED:
                     data.setConfirmed_numbers(numbers.toArray(new Long[0]));
+                    data.setCurrent_confirmed(Long.parseLong("".equals(record.get(current_date))?"0":record.get(current_date)));
                     break;
-                case "DEATH":
+                case DEATH:
                     data.setDeath_numbers(numbers.toArray(new Long[0]));
+                    data.setCurrent_death(Long.parseLong("".equals(record.get(current_date))?"0":record.get(current_date)));
                     break;
-                case "RECOVERED":
+                case RECOVERED:
                     data.setRecovered_numbers(numbers.toArray(new Long[0]));
+                    data.setCurrent_recovered(Long.parseLong("".equals(record.get(current_date))?"0":record.get(current_date)));
                     break;
                 default:
                     log.error("在\"CovidDataService-fetchData\"中，未知字段：" + item + "\n Url: " + url);
@@ -94,27 +106,27 @@ public class CovidDataService {
     @PostConstruct
     @Scheduled(cron = "* * 1 * * *")
     private void updateData() throws IOException, InterruptedException {
-        fetchData(CONFIRMED_DATA_URL, "CONFIRMED");
-        fetchData(DEATH_DATA_URL, "DEATH");
-        fetchData(RECOVERED_DATA_URL, "RECOVERED");
+        fetchData(CONFIRMED_DATA_URL, CONFIRMED);
+        fetchData(DEATH_DATA_URL, DEATH);
+        fetchData(RECOVERED_DATA_URL, RECOVERED);
 
-        global_total_data.put("CONFIRMED", global_data.values().stream().mapToLong(data -> data.getConfirmed_numbers()[data.getConfirmed_numbers().length - 1]).sum());
-        global_total_data.put("DEATH", global_data.values().stream().mapToLong(data -> data.getDeath_numbers()[data.getDeath_numbers().length - 1]).sum());
-        global_total_data.put("RECOVERED", global_data.values().stream().mapToLong(data -> data.getRecovered_numbers()[data.getRecovered_numbers().length - 1]).sum());
+        global_total_data.put(CONFIRMED, global_data.values().stream().mapToLong(data -> data.getCurrent_confirmed()).sum());
+        global_total_data.put(DEATH, global_data.values().stream().mapToLong(data -> data.getCurrent_death()).sum());
+        global_total_data.put(RECOVERED, global_data.values().stream().mapToLong(data -> data.getCurrent_recovered()).sum());
 
-        China_total_data.put("CONFIRMED", China_data.values().stream().mapToLong(data -> data.getConfirmed_numbers()[data.getConfirmed_numbers().length - 1]).sum());
-        China_total_data.put("DEATH", China_data.values().stream().mapToLong(data -> data.getDeath_numbers()[data.getDeath_numbers().length - 1]).sum());
-        China_total_data.put("RECOVERED", China_data.values().stream().mapToLong(data -> data.getRecovered_numbers()[data.getRecovered_numbers().length - 1]).sum());
+        China_total_data.put(CONFIRMED, China_data.values().stream().mapToLong(data -> data.getCurrent_confirmed()).sum());
+        China_total_data.put(DEATH, China_data.values().stream().mapToLong(data -> data.getCurrent_death()).sum());
+        China_total_data.put(RECOVERED, China_data.values().stream().mapToLong(data -> data.getCurrent_recovered()).sum());
 
         updateDate = new Date();
     }
 
-    public HashMap<String, CovidData> getGlobalDetailData() {
-        return global_data;
+    public CovidData[] getGlobalDetailData() {
+        return global_data.values().toArray(new CovidData[0]);
     }
 
-    public HashMap<String, CovidData> getChinaDetailData() {
-        return China_data;
+    public CovidData[] getChinaDetailData() {
+        return China_data.values().toArray(new CovidData[0]);
     }
 
     public Map<String, Long> getGlobalTotalData() {
