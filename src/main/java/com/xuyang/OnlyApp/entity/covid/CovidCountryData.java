@@ -1,7 +1,8 @@
-package com.xuyang.OnlyApp.entity;
+package com.xuyang.OnlyApp.entity.covid;
 
 import lombok.Data;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -29,6 +30,6 @@ public class CovidCountryData {
     private String comment;
     private Date updateTime;
 
-    @OneToMany
+    @OneToMany(targetEntity = CovidCityData.class, cascade = CascadeType.ALL)
     List<CovidCityData> cities;
 }

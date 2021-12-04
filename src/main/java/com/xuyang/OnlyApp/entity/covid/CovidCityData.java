@@ -1,4 +1,4 @@
-package com.xuyang.OnlyApp.entity;
+package com.xuyang.OnlyApp.entity.covid;
 
 import lombok.Data;
 
