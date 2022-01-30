@@ -34,7 +34,7 @@ public class CovidDataService {
     private static CovidTotalData total_data = new CovidTotalData();
     private static ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    @PostConstruct
+//    @PostConstruct
     @Scheduled(cron = "* * 1 * * *")
     private void fetchData() throws IOException {
         covidDataRepository.deleteAll();
