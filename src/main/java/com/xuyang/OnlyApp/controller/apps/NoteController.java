@@ -1,7 +1,9 @@
 package com.xuyang.OnlyApp.controller.apps;
 
 import com.xuyang.OnlyApp.entity.note.Directory;
+import com.xuyang.OnlyApp.entity.note.Note;
 import com.xuyang.OnlyApp.repository.DirectoryRepository;
+import com.xuyang.OnlyApp.repository.NoteRepository;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
@@ -14,9 +16,11 @@ import java.util.Map;
 public class NoteController {
 
     private DirectoryRepository directoryRepository;
+    private NoteRepository noteRepository;
 
-    public NoteController(DirectoryRepository directoryRepository) {
+    public NoteController(DirectoryRepository directoryRepository, NoteRepository noteRepository) {
         this.directoryRepository = directoryRepository;
+        this.noteRepository = noteRepository;
     }
 
     @GetMapping("/all_dirs")
@@ -84,5 +88,28 @@ public class NoteController {
         directoryRepository.deleteByIdAndUser(dirId, userId);
 
         return directoryRepository.findAllByUserAndLevel(userId, 0);
+    }
+
+    @GetMapping("/all_notes")
+    public List<Note> getAllNotes(@RequestParam String userId, @RequestParam String dirId) {
+        long user=-1;
+        long dir=-1;
+        try {
+            user=Long.parseLong(userId);
+            dir=Long.parseLong(dirId);
+        }catch (Exception e){
+            return null;
+        }
+
+        if(dir==-1){
+            return noteRepository.findAllByUserId(user);
+        }
+
+        Directory directory=directoryRepository.findByIdAndUser(dir, user);
+        if(directory!=null){
+            return directory.getNotes();
+        }else {
+            return null;
+        }
     }
 }

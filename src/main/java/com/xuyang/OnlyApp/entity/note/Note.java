@@ -21,4 +21,6 @@ public class Note {
 
     @ManyToOne
     private Directory directory;
+
+    private Long userId;
 }
