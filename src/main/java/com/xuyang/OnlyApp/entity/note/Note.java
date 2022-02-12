@@ -1,11 +1,10 @@
 package com.xuyang.OnlyApp.entity.note;
 
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.util.Date;
 
 @Data
@@ -14,13 +13,19 @@ public class Note {
     @Id
     @GeneratedValue
     private Long id;
-    private String title;
-    private String content;
-    private Date created_time;
-    private Date modified_time;
 
-    @ManyToOne
-    private Directory directory;
+    private String title;
+
+    @Column(columnDefinition = "longtext")
+    private String content;
+
+    @CreationTimestamp
+    @Column(columnDefinition = "timestamp")
+    private Date created_time;
+
+    @UpdateTimestamp
+    @Column(columnDefinition = "timestamp")
+    private Date modified_time;
 
     private Long userId;
 }

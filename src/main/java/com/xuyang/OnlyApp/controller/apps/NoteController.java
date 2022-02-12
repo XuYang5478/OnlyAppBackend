@@ -4,9 +4,11 @@ import com.xuyang.OnlyApp.entity.note.Directory;
 import com.xuyang.OnlyApp.entity.note.Note;
 import com.xuyang.OnlyApp.repository.DirectoryRepository;
 import com.xuyang.OnlyApp.repository.NoteRepository;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +49,8 @@ public class NoteController {
 
         try {
             current_dir = Long.parseLong(info.get("current_dir"));
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         Directory current = directoryRepository.findByIdAndUser(current_dir, userId);
         if (current == null) {
@@ -63,9 +66,9 @@ public class NoteController {
     }
 
     @PostMapping("/rename_dir")
-    public List<Directory> renameDir(@RequestBody Map<String, String> dir){
-        long userId=Long.parseLong(dir.get("userId"));
-        long dirId=Long.parseLong(dir.get("id"));
+    public List<Directory> renameDir(@RequestBody Map<String, String> dir) {
+        long userId = Long.parseLong(dir.get("userId"));
+        long dirId = Long.parseLong(dir.get("id"));
 
         Directory directory = directoryRepository.findByIdAndUser(dirId, userId);
         directory.setName(dir.get("name"));
@@ -75,13 +78,13 @@ public class NoteController {
     }
 
     @PostMapping("/delete_dir")
-    public List<Directory> deleteDir(@RequestBody Map<String, String> dir){
-        long userId=Long.parseLong(dir.get("userId"));
-        long dirId=Long.parseLong(dir.get("id"));
+    public List<Directory> deleteDir(@RequestBody Map<String, String> dir) {
+        long userId = Long.parseLong(dir.get("userId"));
+        long dirId = Long.parseLong(dir.get("id"));
 
-        Directory deleted=directoryRepository.findByIdAndUser(dirId, userId);
-        Directory parent=directoryRepository.findByIdAndUser(deleted.getParent(), userId);
-        if(parent!=null){
+        Directory deleted = directoryRepository.findByIdAndUser(dirId, userId);
+        Directory parent = directoryRepository.findByIdAndUser(deleted.getParent(), userId);
+        if (parent != null) {
             parent.getChildren().remove(deleted);
             directoryRepository.save(parent);
         }
@@ -92,24 +95,89 @@ public class NoteController {
 
     @GetMapping("/all_notes")
     public List<Note> getAllNotes(@RequestParam String userId, @RequestParam String dirId) {
-        long user=-1;
-        long dir=-1;
+        long user = -1;
+        long dir = -1;
         try {
-            user=Long.parseLong(userId);
-            dir=Long.parseLong(dirId);
-        }catch (Exception e){
+            user = Long.parseLong(userId);
+            dir = Long.parseLong(dirId);
+        } catch (Exception e) {
             return null;
         }
 
-        if(dir==-1){
+        if (dir == -1) {
             return noteRepository.findAllByUserId(user);
         }
 
-        Directory directory=directoryRepository.findByIdAndUser(dir, user);
-        if(directory!=null){
+        Directory directory = directoryRepository.findByIdAndUser(dir, user);
+        if (directory != null) {
             return directory.getNotes();
-        }else {
+        } else {
             return null;
         }
+    }
+
+    @PostMapping("/add_note")
+    public boolean addNote(@RequestBody Map<String, String> info) {
+        try {
+            Long noteId=Long.parseLong(info.get("noteId"));
+            Long userId = Long.parseLong(info.get("userId"));
+            Long dirId = Long.parseLong(info.get("dirId"));
+            String title = info.get("header");
+            String content = info.get("content");
+
+            if(noteId>0){
+                Note one=noteRepository.findByIdAndUserId(noteId, userId);
+                one.setTitle(title);
+                one.setContent(content);
+                noteRepository.save(one);
+            }else{
+                Directory dir = directoryRepository.findByIdAndUser(dirId, userId);
+                Note note = new Note();
+                note.setTitle(title);
+                note.setContent(content);
+                note.setUserId(userId);
+                dir.getNotes().add(note);
+                directoryRepository.save(dir);
+            }
+
+            return true;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            return false;
+        }
+    }
+
+    @GetMapping("/get_note")
+    public Note getNote(@RequestParam String userId, @RequestParam String noteId){
+        try{
+            long note_id=Long.parseLong(noteId);
+            long user_id=Long.parseLong(userId);
+
+            return noteRepository.findByIdAndUserId(note_id, user_id);
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    @PostMapping("/delete_note")
+    public boolean deleteNote(@RequestBody Map<String, String> info) {
+        try{
+            long userId=Long.parseLong(info.get("userId"));
+            long dirId=Long.parseLong(info.get("dirId"));
+            long noteId=Long.parseLong(info.get("noteId"));
+
+            Directory dir=directoryRepository.findByIdAndUser(dirId, userId);
+            Note note=noteRepository.findByIdAndUserId(noteId, userId);
+            dir.getNotes().remove(note);
+            directoryRepository.save(dir);
+
+            noteRepository.deleteById(noteId);
+
+            return true;
+        } catch (Exception e){
+            System.err.println(e.getMessage());
+            return false;
+        }
+
     }
 }
