@@ -6,7 +6,7 @@
 # 目前进度
 - [x] Todo
 - [x] 疫情数据展示
-- [ ] Note
+- [x] Note
 - [ ] ...
 # 配置运行
 将`resource`文件夹下的`application-template.yaml`重命名为需要的配置文件名，如`application.yaml`，然后修改其中的内容为自己的环境信息。最后运行时哪里报错改哪里，就可以啦。

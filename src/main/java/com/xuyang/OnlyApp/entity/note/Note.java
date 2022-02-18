@@ -28,4 +28,6 @@ public class Note {
     private Date modified_time;
 
     private Long userId;
+
+    private Long directoryId;
 }

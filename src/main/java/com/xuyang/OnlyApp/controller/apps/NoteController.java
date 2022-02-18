@@ -4,13 +4,13 @@ import com.xuyang.OnlyApp.entity.note.Directory;
 import com.xuyang.OnlyApp.entity.note.Note;
 import com.xuyang.OnlyApp.repository.DirectoryRepository;
 import com.xuyang.OnlyApp.repository.NoteRepository;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/note")
@@ -119,23 +119,24 @@ public class NoteController {
     @PostMapping("/add_note")
     public boolean addNote(@RequestBody Map<String, String> info) {
         try {
-            Long noteId=Long.parseLong(info.get("noteId"));
+            Long noteId = Long.parseLong(info.get("noteId"));
             Long userId = Long.parseLong(info.get("userId"));
             Long dirId = Long.parseLong(info.get("dirId"));
             String title = info.get("header");
             String content = info.get("content");
 
-            if(noteId>0){
-                Note one=noteRepository.findByIdAndUserId(noteId, userId);
+            if (noteId > 0) {
+                Note one = noteRepository.findByIdAndUserId(noteId, userId);
                 one.setTitle(title);
                 one.setContent(content);
                 noteRepository.save(one);
-            }else{
+            } else {
                 Directory dir = directoryRepository.findByIdAndUser(dirId, userId);
                 Note note = new Note();
                 note.setTitle(title);
                 note.setContent(content);
                 note.setUserId(userId);
+                note.setDirectoryId(dirId);
                 dir.getNotes().add(note);
                 directoryRepository.save(dir);
             }
@@ -148,36 +149,58 @@ public class NoteController {
     }
 
     @GetMapping("/get_note")
-    public Note getNote(@RequestParam String userId, @RequestParam String noteId){
-        try{
-            long note_id=Long.parseLong(noteId);
-            long user_id=Long.parseLong(userId);
+    public Note getNote(@RequestParam String userId, @RequestParam String noteId) {
+        try {
+            long note_id = Long.parseLong(noteId);
+            long user_id = Long.parseLong(userId);
 
             return noteRepository.findByIdAndUserId(note_id, user_id);
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
 
     @PostMapping("/delete_note")
     public boolean deleteNote(@RequestBody Map<String, String> info) {
-        try{
-            long userId=Long.parseLong(info.get("userId"));
-            long dirId=Long.parseLong(info.get("dirId"));
-            long noteId=Long.parseLong(info.get("noteId"));
+        try {
+            long userId = Long.parseLong(info.get("userId"));
+            long noteId = Long.parseLong(info.get("noteId"));
 
-            Directory dir=directoryRepository.findByIdAndUser(dirId, userId);
-            Note note=noteRepository.findByIdAndUserId(noteId, userId);
+            Note note = noteRepository.findByIdAndUserId(noteId, userId);
+            Directory dir = directoryRepository.findByIdAndUser(note.getDirectoryId(), userId);
             dir.getNotes().remove(note);
             directoryRepository.save(dir);
 
             noteRepository.deleteById(noteId);
 
             return true;
-        } catch (Exception e){
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             return false;
         }
+    }
 
+    @PostMapping("/search_note")
+    public Set<Note> searchNotes(@RequestBody Map<String, String> info) {
+        try {
+            Long userId = Long.parseLong(info.get("userId"));
+            String keyword = info.get("keyword");
+            String[] keywords = keyword.split(" ");
+
+            Set<Note> notes = new HashSet<>();
+            for (String word : keywords) {
+                notes.addAll(noteRepository.findAllByUserIdAndTitleLike(userId, "%" + word + "%"));
+                notes.addAll(noteRepository.findAllByUserIdAndContentLike(userId, "%" + word + "%"));
+            }
+            return notes;
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            return null;
+        }
+    }
+
+    @GetMapping("/recent_note")
+    public List<Note> recentNotes(@RequestParam String userId){
+        return noteRepository.findRecent(Long.parseLong(userId), 5);
     }
 }
