@@ -4,6 +4,7 @@ import com.qiniu.util.Auth;
 import com.xuyang.OnlyApp.entity.User;
 import com.xuyang.OnlyApp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,9 @@ public class Homepage {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private Environment env;
+
     @GetMapping(path = "/")
     public String hello() {
         return "hello world";
@@ -30,14 +34,10 @@ public class Homepage {
         return new Date().toString();
     }
 
-    @PostMapping("/qiniu_token")
-    public String getQiniuToken(@RequestBody Map<String, Object> data) {
-        String AccessKey = data.get("AccessKey").toString();
-        String SecretKey = data.get("SecretKey").toString();
-        String Bucket = data.get("Bucket").toString();
-
-        Auth auth = Auth.create(AccessKey, SecretKey);
-        return auth.uploadToken(Bucket);
+    @GetMapping("/qiniu_token")
+    public String getQiniuToken() {
+        Auth auth = Auth.create(env.getProperty("qiniu.AccessKey"), env.getProperty("qiniu.SecretKey"));
+        return auth.uploadToken(env.getProperty("qiniu.Bucket"));
     }
 
     @PostMapping("/register")
